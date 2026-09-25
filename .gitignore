@@ -1,0 +1,87 @@
+.venv/
+# =========================
+# AMBIENTE VIRTUAL PYTHON
+# =========================
+.venv/
+venv/
+env/
+node_modules/
+
+# =========================
+# VARIÁVEIS DE AMBIENTE
+# =========================
+.env
+.env.*
+!.env.example
+.secrets/
+secrets/
+*.secret
+*.secrets
+credentials*.json
+*-credentials.json
+service-account*.json
+.npmrc
+.pypirc
+.netrc
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# ARQUIVOS TEMPORÁRIOS
+# =========================
+.tmp/
+*.tmp
+
+# =========================
+# LOGS
+# =========================
+*.log
+*.out
+*.err
+
+# =========================
+# BANCO DE DADOS LOCAL
+# =========================
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# =========================
+# BACKUPS DO BANCO
+# =========================
+backup.sql
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# SISTEMA OPERACIONAL
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# CHAVES E CERTIFICADOS
+# =========================
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+.ssh/
+.aws/
+.azure/
+id_rsa
+id_rsa_*
+id_ed25519
+id_ed25519_*
+*.ppk

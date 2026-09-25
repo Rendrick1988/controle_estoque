@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: controle-estoque-web
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: controle-estoque-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: MERCADO_PAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADO_PAGO_PUBLIC_KEY
+        sync: false
+      - key: MERCADO_PAGO_API_BASE_URL
+        value: https://api.mercadopago.com
+
+databases:
+  - name: controle-estoque-db
+    databaseName: controle_estoque
+    user: controle_estoque
+    plan: basic-256mb
+    ipAllowList: []

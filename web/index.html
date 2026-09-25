@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Controle de Estoque</title>
+    <link rel="stylesheet" href="/styles.css?v=20260513landingbtns" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="loading-overlay hidden" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div id="loadingText">Carregando...</div>
+    </div>
+
+    <div class="toast hidden" id="toast"></div>
+
+    <div class="app" id="appRoot">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="logo" id="brandLogo">CE</div>
+          <div>
+            <div class="brand-title">Controle de Estoque</div>
+            <div class="brand-sub" id="brandSub">SaaS multiempresa</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item" data-view="dashboard" data-feature="dashboard_avancado">Dashboard</button>
+          <button class="nav-item" data-view="products">Produtos</button>
+          <button class="nav-item" data-view="customers" data-capability="clientes">Clientes</button>
+          <button class="nav-item" data-view="users">Usuários</button>
+          <button class="nav-item" data-view="sales" data-feature="vendas">Vendas</button>
+          <button class="nav-item" data-view="reports" data-feature="relatorio">Relatórios</button>
+          <button class="nav-item" data-view="audit">Auditoria</button>
+          <button class="nav-item" data-view="settings">Configurações</button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="btn btn-ghost" id="btnLogout">Sair</button>
+        </div>
+      </aside>
+
+      <button
+        type="button"
+        class="sidebar-backdrop"
+        id="sidebarBackdrop"
+        aria-label="Fechar menu"
+        tabindex="-1"
+        hidden
+      ></button>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="btn btn-ghost mobile-only" id="btnToggleSidebar">Menu</button>
+            <div class="page-title" id="pageTitle">Entrar</div>
+          </div>
+          <div class="topbar-right">
+            <span class="chip" id="meChip">Não autenticado</span>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="view auth" id="authView">
+            <div class="auth-layout">
+              <div class="card auth-spotlight">
+                <div class="auth-spotlight-grid">
+                  <div class="spotlight-copy">
+                    <div class="eyebrow">ERP de estoque multiempresa — cadastro, login e operação em um só lugar</div>
+                    <h2 class="spotlight-title">Estoque, vendas por unidade ou peso e controle da sua empresa sem planilhas.</h2>
+                    <p class="spotlight-text">
+                      Cadastre produtos com validade, venda no caixa com leitor de SKU, use <strong>balança USB</strong> para
+                      itens pesados (kg) quando precisar, acompanhe relatórios e auditoria. Plano <strong>Free</strong> com
+                      acesso imediato; planos pagos com checkout <strong>Mercado Pago</strong> (cartão e Pix).
+                    </p>
+                    <div class="spotlight-payments">
+                      <span class="payment-pill">Mercado Pago</span>
+                      <span class="payment-pill">Cartão</span>
+                      <span class="payment-pill">Pix</span>
+                      <span class="payment-pill">Balança serial</span>
+                    </div>
+                    <div class="spotlight-highlights" aria-label="Destaques do sistema">
+                      <div class="highlight-card">
+                        <strong>Unidade ou peso (kg)</strong>
+                        <span>Produtos normais ou por peso, com leitura opcional da balança no Chrome/Edge.</span>
+                      </div>
+                      <div class="highlight-card">
+                        <strong>Validade e estoque</strong>
+                        <span>Controle de validade, alertas e baixa automática a cada venda.</span>
+                      </div>
+                      <div class="highlight-card">
+                        <strong>Auditoria e planos</strong>
+                        <span>Histórico de ações por empresa, limites por plano e recuperação de senha.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <aside class="spotlight-summary" aria-label="Resumo do fluxo">
+                    <div class="summary-kicker">Comece em minutos</div>
+                    <div class="summary-title">Três passos para começar hoje</div>
+                    <ul class="summary-list">
+                      <li><strong>Criar empresa</strong> — plano Free ativo na hora ou pago via Mercado Pago.</li>
+                      <li><strong>Operar</strong> — produtos, validade, vendas por unidade ou kg e SKU no caixa.</li>
+                      <li><strong>Evoluir</strong> — relatórios, auditoria e upgrade de plano quando precisar.</li>
+                    </ul>
+                  </aside>
+                </div>
+
+                <div class="pricing-grid" id="publicPlansGrid" aria-live="polite"></div>
+              </div>
+
+              <div class="auth-stack">
+                <div class="card auth-card auth-card-register">
+                  <div class="card-header">
+                    <div class="card-title">Criar empresa</div>
+                    <div class="card-subtitle">Escolha o plano ideal para sua empresa, comece gratis com todos os modulos ou avance para limites maiores</div>
+                  </div>
+                  <form id="registerForm" class="form">
+                    <label class="field">
+                      <span>Empresa</span>
+                      <input name="company_name" required minlength="2" />
+                    </label>
+                    <label class="field">
+                      <span>Email do responsável</span>
+                      <input name="email" type="email" required />
+                    </label>
+                    <label class="field">
+                      <span>Nome</span>
+                      <input name="full_name" />
+                    </label>
+                    <label class="field">
+                      <span>Senha</span>
+                      <input name="password" type="password" required minlength="6" />
+                    </label>
+                    <label class="field">
+                      <span>Plano</span>
+                      <select name="plan" id="registerPlan">
+                        <option value="free">Free</option>
+                        <option value="basic">Básico</option>
+                        <option value="professional" selected>Profissional</option>
+                        <option value="premium">Premium</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Ciclo de cobrança</span>
+                      <select name="billing_cycle" id="registerBillingCycle">
+                        <option value="monthly" selected>Mensal</option>
+                        <option value="annual">Anual</option>
+                      </select>
+                    </label>
+                    <div class="hint">O plano Free libera acesso no cadastro com limites reduzidos. Nos planos pagos, cartao e Pix no Mercado Pago liberam o acesso apos a confirmação.</div>
+                    <div class="actions auth-actions">
+                      <button class="btn btn-primary" type="submit">Cadastrar empresa</button>
+                      <button class="btn btn-ghost" type="button" id="btnCheckoutMercadoPago">Pagar com Mercado Pago</button>
+                    </div>
+                    <div class="hint" id="registerMsg"></div>
+                  </form>
+                </div>
+
+                <div class="card auth-card auth-card-login">
+                  <div class="card-header">
+                    <div class="card-title">Entrar</div>
+                    <div class="card-subtitle">Acesse sua empresa</div>
+                  </div>
+                  <form id="loginForm" class="form">
+                    <label class="field">
+                      <span>Email</span>
+                      <input name="email" type="email" required />
+                    </label>
+                    <label class="field">
+                      <span>Senha</span>
+                      <input name="password" type="password" required minlength="6" />
+                    </label>
+                    <button class="btn btn-primary" type="submit">Entrar</button>
+                    <button type="button" class="btn btn-ghost btn-full forgot-password-toggle" id="btnToggleForgotPassword">
+                      Esqueci minha senha
+                    </button>
+                    <div id="forgotPasswordPanel" class="forgot-password-panel hidden">
+                      <p class="hint">
+                        Use o mesmo e-mail do login. Se existir conta em empresa ativa, você poderá criar nova senha
+                        com o código gerado pelo sistema (exibido abaixo ou enviado por e-mail se o servidor estiver
+                        configurado para isso).
+                      </p>
+                      <label class="field">
+                        <span>E-mail da conta</span>
+                        <input type="email" id="forgotPasswordEmail" name="forgot_email" autocomplete="username" />
+                      </label>
+                      <button type="button" class="btn btn-primary" id="btnRequestPasswordReset">
+                        Solicitar código de recuperação
+                      </button>
+                      <div id="forgotPasswordStep2" class="hidden forgot-password-step2">
+                        <label class="field">
+                          <span>Nova senha</span>
+                          <input
+                            type="password"
+                            id="forgotNewPassword"
+                            minlength="6"
+                            autocomplete="new-password"
+                          />
+                        </label>
+                        <label class="field">
+                          <span>Confirmar nova senha</span>
+                          <input
+                            type="password"
+                            id="forgotNewPasswordConfirm"
+                            minlength="6"
+                            autocomplete="new-password"
+                          />
+                        </label>
+                        <button type="button" class="btn btn-primary" id="btnSubmitPasswordReset">
+                          Definir nova senha
+                        </button>
+                      </div>
+                      <input type="hidden" id="forgotResetToken" value="" />
+                      <div class="hint" id="forgotPasswordMsg"></div>
+                    </div>
+                    <div class="hint" id="loginMsg"></div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="view" id="dashboardView">
+            <div class="grid metrics-grid">
+              <div class="card metric">
+                <div class="card-subtitle">Vendas de hoje</div>
+                <div class="metric-value" id="salesTodayMetric">R$ 0,00</div>
+              </div>
+              <div class="card metric">
+                <div class="card-subtitle">Faturamento total</div>
+                <div class="metric-value" id="revenueMetric">R$ 0,00</div>
+              </div>
+              <div class="card metric">
+                <div class="card-subtitle">Total de vendas</div>
+                <div class="metric-value" id="totalSalesMetric">0</div>
+              </div>
+              <div class="card metric">
+                <div class="card-subtitle">Produtos cadastrados</div>
+                <div class="metric-value" id="totalProductsMetric">0</div>
+              </div>
+              <div class="card metric">
+                <div class="card-subtitle">Última atualização</div>
+                <div class="metric-value" id="dashboardUpdated">-</div>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Vendas por dia</div>
+                  <div class="card-subtitle">Últimos 14 dias</div>
+                </div>
+                <div class="chart-wrap"><canvas id="salesByDayChart"></canvas></div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Faturamento mensal</div>
+                  <div class="card-subtitle">Últimos 12 meses</div>
+                </div>
+                <div class="chart-wrap"><canvas id="salesByMonthChart"></canvas></div>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Produtos mais vendidos</div>
+                  <div class="card-subtitle">Volume por produto</div>
+                </div>
+                <div class="chart-wrap"><canvas id="salesByProductChart"></canvas></div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Alertas avançados</div>
+                  <div class="card-subtitle">Estoque e vendas</div>
+                </div>
+                <div id="alertsList" class="alerts-list"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Vendas recentes</div>
+                <div class="card-subtitle">Últimas operações</div>
+              </div>
+              <div class="table" id="recentSalesTable"></div>
+            </div>
+          </div>
+
+          <div class="view" id="productsView">
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Cadastro de produto</div>
+                  <div class="card-subtitle">SKU único por empresa</div>
+                </div>
+                <form id="productForm" class="form form-2col">
+                  <label class="field">
+                    <span>Nome</span>
+                    <input name="name" required minlength="2" />
+                  </label>
+                  <label class="field">
+                    <span>SKU</span>
+                    <input name="sku" required />
+                  </label>
+                  <label class="field">
+                    <span>Quantidade</span>
+                    <input name="quantity" type="number" min="0" value="0" required />
+                  </label>
+                  <label class="field">
+                    <span>Validade</span>
+                    <input name="validity" type="date" required />
+                  </label>
+                  <label class="field">
+                    <span>Estoque mínimo</span>
+                    <input name="min_quantity" type="number" min="0" value="0" required />
+                  </label>
+                  <label class="field">
+                    <span>Preço</span>
+                    <input name="price" type="number" min="0" step="0.01" value="0" required />
+                    <span class="field-hint" id="productPriceHint">Valor por unidade</span>
+                  </label>
+                  <label class="field field-wide checkbox-field">
+                    <span>Venda por peso (opcional)</span>
+                    <label class="checkbox-row">
+                      <input type="checkbox" name="sold_by_weight" id="productSoldByWeight" />
+                      <span>Produto pesado — estoque e vendas em kg (balança)</span>
+                    </label>
+                  </label>
+                  <div id="productWeightFields" class="product-weight-fields hidden field-wide">
+                    <div class="form form-2col product-weight-grid">
+                      <label class="field">
+                        <span>Estoque (kg)</span>
+                        <input name="weight_stock_kg" type="number" min="0" step="0.001" value="0" />
+                      </label>
+                      <label class="field">
+                        <span>Estoque mínimo (kg)</span>
+                        <input name="min_weight_kg" type="number" min="0" step="0.001" value="0" />
+                      </label>
+                    </div>
+                  </div>
+                  <label class="field field-wide">
+                    <span>Descrição</span>
+                    <textarea name="description" rows="3"></textarea>
+                  </label>
+                  <div class="actions field-wide">
+                    <button class="btn btn-primary" type="submit">Salvar produto</button>
+                    <button class="btn btn-ghost" type="button" id="btnClearProductForm">Limpar</button>
+                  </div>
+                  <div class="hint field-wide" id="productMsg"></div>
+                </form>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Produtos</div>
+                  <div class="card-subtitle">Gestão de estoque</div>
+                </div>
+                <div class="table" id="productsTable"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="view" id="customersView">
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Cadastro de cliente</div>
+                  <div class="card-subtitle">Dados por empresa</div>
+                </div>
+                <form id="customerForm" class="form">
+                  <label class="field">
+                    <span>Nome</span>
+                    <input name="name" required minlength="2" />
+                  </label>
+                  <label class="field">
+                    <span>Email (opcional)</span>
+                    <input name="email" type="email" />
+                  </label>
+                  <label class="field">
+                    <span>CPF (opcional)</span>
+                    <input name="cpf" type="cpf" />
+                  </label>
+                  <label class="field">
+                    <span>Telefone</span>
+                    <input name="phone" required minlength="8" />
+                  </label>
+                  <div class="actions">
+                    <button class="btn btn-primary" type="submit">Salvar cliente</button>
+                    <button class="btn btn-ghost" type="button" id="btnClearCustomerForm">Limpar</button>
+                  </div>
+                  <div class="hint" id="customerMsg"></div>
+                </form>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Clientes</div>
+                  <div class="card-subtitle">CRM básico</div>
+                </div>
+                <div class="table" id="customersTable"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="view" id="usersView">
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Gestão de usuários</div>
+                  <div class="card-subtitle">Dono e colaborador da empresa</div>
+                </div>
+                <form id="companyUserForm" class="form form-2col">
+                  <label class="field">
+                    <span>Nome</span>
+                    <input name="full_name" minlength="2" />
+                  </label>
+                  <label class="field">
+                    <span>Email</span>
+                    <input name="email" type="email" required />
+                  </label>
+                  <label class="field">
+                    <span>Senha</span>
+                    <input name="password" type="password" minlength="6" />
+                  </label>
+                  <label class="field">
+                    <span>Perfil</span>
+                    <select name="profile">
+                      <option value="collaborator">colaborador</option>
+                      <option value="owner">dono</option>
+                    </select>
+                  </label>
+                  <label class="feature-option field-wide">
+                    <input name="is_active" type="checkbox" checked />
+                    acesso ativo
+                  </label>
+                  <div class="actions field-wide">
+                    <button class="btn btn-primary" type="submit">Salvar usuário</button>
+                    <button class="btn btn-ghost" type="button" id="btnClearCompanyUserForm">Limpar</button>
+                  </div>
+                  <div class="hint field-wide" id="companyUserMsg"></div>
+                </form>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Usuários da empresa</div>
+                  <div class="card-subtitle">Controle interno de acessos</div>
+                </div>
+                <div class="table" id="companyUsersTable"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="view" id="salesView">
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Nova venda</div>
+                  <div class="card-subtitle">Unidade ou peso (kg); balança USB via Chrome/Edge</div>
+                </div>
+                <form id="saleForm" class="form">
+                  <label class="field">
+                    <span>Leitor de código de barras / SKU</span>
+                    <div class="actions compact">
+                      <input id="saleSkuInput" placeholder="Leia ou digite o SKU e pressione Enter" />
+                      <button class="btn btn-ghost" type="button" id="btnAddBySku">Adicionar por SKU</button>
+                    </div>
+                  </label>
+                  <label class="field">
+                    <span>Cliente</span>
+                    <select id="saleCustomerSelect"></select>
+                  </label>
+                  <div id="saleItemsContainer" class="sale-items"></div>
+                  <div class="actions">
+                    <button class="btn btn-ghost" type="button" id="btnAddSaleItem">Adicionar item</button>
+                    <button class="btn btn-primary" type="submit">Finalizar venda</button>
+                  </div>
+                  <div class="sale-total" id="saleTotal">Total: R$ 0,00</div>
+                  <div class="hint" id="saleMsg"></div>
+                </form>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Histórico de vendas</div>
+                  <div class="card-subtitle">Últimas vendas</div>
+                </div>
+                <div class="table" id="salesTable"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="view" id="reportsView">
+            <div class="grid metrics-grid">
+              <div class="card metric">
+                <div class="card-subtitle">Faturamento total</div>
+                <div class="metric-value" id="reportsRevenueMetric">R$ 0,00</div>
+              </div>
+              <div class="card metric">
+                <div class="card-subtitle">Exportação</div>
+                <div class="actions compact">
+                  <button class="btn btn-primary" id="btnExportPdf" type="button">Exportar PDF</button>
+                  <button class="btn btn-ghost" id="btnPrintReport" type="button">Imprimir</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Vendas por dia</div>
+                </div>
+                <div class="table" id="reportByDayTable"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Vendas por mês</div>
+                </div>
+                <div class="table" id="reportByMonthTable"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Produtos mais vendidos</div>
+                </div>
+                <div class="table" id="reportTopProductsTable"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Histórico completo</div>
+              </div>
+              <div class="table" id="reportHistoryTable"></div>
+            </div>
+          </div>
+
+          <div class="view" id="auditView">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Auditoria</div>
+                <div class="card-subtitle">Logs da empresa</div>
+              </div>
+              <div class="actions audit-filters">
+                <input id="auditActionFilter" placeholder="Ação" />
+                <input id="auditEntityFilter" placeholder="Entidade" />
+                <input id="auditSearchFilter" placeholder="Buscar na descrição" />
+                <button class="btn btn-ghost" type="button" id="btnReloadAudit">Filtrar</button>
+              </div>
+              <div class="table" id="auditTable"></div>
+            </div>
+          </div>
+
+          <div class="view" id="settingsView">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Configurações da empresa</div>
+                <div class="card-subtitle">Tema, logo e feature flags</div>
+              </div>
+              <form id="settingsForm" class="form form-2col">
+                <label class="field">
+                  <span>Tema</span>
+                  <select name="theme" id="settingsTheme">
+                    <option value="light">Claro</option>
+                    <option value="dark">Escuro</option>
+                    <option value="pink">Rosa (fundo amarelo)</option>
+                    <option value="custom">Personalizado (cor primária)</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Cor primária</span>
+                  <input name="primary_color" id="settingsPrimaryColor" placeholder="#1f6feb" />
+                </label>
+                <label class="field field-wide">
+                  <span>URL pública da logo</span>
+                  <input name="logo_url" id="settingsLogoUrlInput" placeholder="https://..." />
+                </label>
+                <div class="field field-wide">
+                  <span>Enviar arquivo da logo</span>
+                  <div class="logo-upload-row">
+                    <input
+                      type="file"
+                      id="settingsLogoFileInput"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                    />
+                    <button class="btn btn-ghost" type="button" id="btnClearSettingsLogo">
+                      Limpar seleção
+                    </button>
+                  </div>
+                  <div class="logo-upload-help">
+                    Use PNG, JPG, WEBP ou GIF com até 2 MB. Se enviar um arquivo, ele terá prioridade sobre a URL.
+                  </div>
+                </div>
+                <div class="field field-wide">
+                  <span>Prévia da logo</span>
+                  <div class="logo-preview-card">
+                    <div class="logo logo-preview" id="settingsLogoPreview">CE</div>
+                    <div class="logo-preview-body">
+                      <div class="logo-preview-copy" id="settingsLogoPreviewText">
+                        Nenhuma logo configurada ainda.
+                      </div>
+                      <div class="actions compact">
+                        <button class="btn btn-danger" type="button" id="btnRemoveSettingsLogo" disabled>
+                          Remover logo atual
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field field-wide">
+                  <span>Funcionalidades ativas</span>
+                  <div class="feature-list">
+                    <label class="feature-option"><input type="checkbox" value="vendas" /> vendas</label>
+                    <label class="feature-option"><input type="checkbox" value="relatorio" /> relatorio</label>
+                    <label class="feature-option"><input type="checkbox" value="dashboard_avancado" /> dashboard_avancado</label>
+                  </div>
+                </div>
+                <div class="actions field-wide">
+                  <button class="btn btn-primary" type="submit">Salvar configurações</button>
+                </div>
+                <div class="hint field-wide" id="settingsMsg"></div>
+              </form>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/scale.js?v=20260518weight"></script>
+    <script src="/app.js?v=20260518weight"></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+Migrações do banco via Alembic.
+
+Use os comandos a partir da raiz do repositório e, de preferência, no mesmo venv da aplicação.
+
+Comandos:
+
+- `python -m alembic upgrade head`
+- `python -m alembic downgrade -1`
+
+Observação:
+
+- Ao subir um ambiente existente para a versão atual, garanta que a revisão mais recente aplicada seja a **head** do repositório (ex.: `c7e2f1a0b9d3` — UNIQUE só em `(company_id, cpf)`). Rode `python -m alembic current` para conferir.
+

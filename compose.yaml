@@ -1,0 +1,56 @@
+# Controle de Estoque — desenvolvimento local (app + Postgres).
+# Copie `.env.example` para `.env` na raiz e ajuste valores sensíveis.
+# Configure as variáveis locais de PostgreSQL e aplicação no `.env`.
+# As demais chaves podem vir do `.env` (interpolação ${VAR:-padrão} abaixo).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD no arquivo .env}
+      POSTGRES_DB: ${POSTGRES_DB:-controle_estoque}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 3s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # A URL do container é montada com estas variáveis, sem credenciais fixas no compose.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD no arquivo .env}@db:5432/${POSTGRES_DB:-controle_estoque}
+      # Demais variaveis: lidas do arquivo .env na raiz do projeto (Compose faz a interpolacao ${VAR:-padrao}).
+      SECRET_KEY: ${SECRET_KEY:?Configure SECRET_KEY no arquivo .env}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8000}
+      MERCADO_PAGO_ACCESS_TOKEN: ${MERCADO_PAGO_ACCESS_TOKEN:-}
+      MERCADO_PAGO_PUBLIC_KEY: ${MERCADO_PAGO_PUBLIC_KEY:-}
+      MERCADO_PAGO_API_BASE_URL: ${MERCADO_PAGO_API_BASE_URL:-https://api.mercadopago.com}
+      MERCADO_PAGO_NOTIFICATION_URL: ${MERCADO_PAGO_NOTIFICATION_URL:-}
+      PASSWORD_RESET_EXPIRE_MINUTES: ${PASSWORD_RESET_EXPIRE_MINUTES:-60}
+      PASSWORD_RESET_TOKEN_IN_RESPONSE: ${PASSWORD_RESET_TOKEN_IN_RESPONSE:-true}
+      # Opcional: desliga migrations na subida (imagem de produção / debug)
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-1}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./web:/app/web
+      - ./alembic:/app/alembic
+    command: >
+      sh -c "python -m alembic upgrade head
+      && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+volumes:
+  postgres_data:
