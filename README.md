@@ -136,12 +136,11 @@ Formas de pagamento disponiveis no fluxo do Mercado Pago (cartao, Pix, etc.) seg
 Historico completo das migrations e relacao com `audit_logs`: [README-AUDITORIA-BANCO.md](README-AUDITORIA-BANCO.md).
 
 ## DER atual (implementado)
-
 ```mermaid
 erDiagram
     COMPANIES {
         int id PK
-        string name UNIQUE
+        string name
         string status
         string plan
         string billing_cycle
@@ -154,7 +153,7 @@ erDiagram
     USERS {
         int id PK
         int company_id FK
-        string email UNIQUE
+        string email
         string full_name
         string hashed_password
         string role
