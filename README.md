@@ -210,7 +210,7 @@ erDiagram
 
     COMPANY_SETTINGS {
         int id PK
-        int company_id FK UNIQUE
+        int company_id FK
         string theme
         string logo_url
         string primary_color
@@ -258,60 +258,61 @@ Regras importantes no modelo:
 ### UML de camadas (Class Diagram)
 
 ```mermaid
+
 classDiagram
     direction LR
 
     class Routes {
-      +auth.py
-      +products.py
-      +customers.py
-      +sales.py
-      +reports.py
-      +dashboard.py
-      +company_settings.py
-      +audit.py
+        +auth.py
+        +products.py
+        +customers.py
+        +sales.py
+        +reports.py
+        +dashboard.py
+        +company_settings.py
+        +audit.py
     }
 
     class Services {
-      +sales_service.py
-      +reports_service.py
-      +dashboard_service.py
-      +settings_service.py
-      +audit_service.py
+        +sales_service.py
+        +reports_service.py
+        +dashboard_service.py
+        +settings_service.py
+        +audit_service.py
     }
 
     class Dependencies {
-      +auth.py
-      +authorization.py
-      +feature_flags.py
+        +auth.py
+        +authorization.py
+        +feature_flags.py
     }
 
     class Schemas {
-      +user.py
-      +product.py
-      +customer.py
-      +sale.py
-      +report.py
-      +dashboard.py
-      +company_settings.py
-      +audit.py
+        +user.py
+        +product.py
+        +customer.py
+        +sale.py
+        +report.py
+        +dashboard.py
+        +company_settings.py
+        +audit.py
     }
 
     class Models {
-      +Company
-      +User
-      +Product
-      +Customer
-      +Sale
-      +SaleItem
-      +CompanySettings
-      +AuditLog
+        +Company
+        +User
+        +Product
+        +Customer
+        +Sale
+        +SaleItem
+        +CompanySettings
+        +AuditLog
     }
 
     class Core {
-      +config.py
-      +db.py
-      +security.py
+        +config.py
+        +db.py
+        +security.py
     }
 
     Routes --> Dependencies : uses
@@ -320,6 +321,7 @@ classDiagram
     Services --> Models : manipulates
     Dependencies --> Models : loads current_user/settings
     Services --> Core : db/session/security
+```
 ```
 
 ### UML do fluxo de venda (Sequence Diagram)
@@ -346,7 +348,6 @@ sequenceDiagram
     S-->>R: sale criada
     R-->>U: 201 Created
 ```
-
 ## Rodar localmente
 
 ### Forma recomendada: um comando (Docker)
